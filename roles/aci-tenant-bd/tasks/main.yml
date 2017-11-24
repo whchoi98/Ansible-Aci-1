@@ -1,0 +1,13 @@
+---
+- name: Tenant BD Create
+  aci_bd:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: no
+    tenant: "{{ item.tenant_name }}"
+    bd: "{{ item.tenant_bd_name }}"
+    vrf: "{{ item.tenant_bd_vrf }}"
+  with_items:
+    - '{{ SSOT_tenant|aci_listify("tenant","bd") }}'
+

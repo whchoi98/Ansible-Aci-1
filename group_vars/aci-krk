@@ -1,0 +1,5 @@
+aci_ip: '{{ inventory_hostname }}:60191'
+aci_username: xxxxx
+aci_password: xxxxx
+action: create
+debug: false

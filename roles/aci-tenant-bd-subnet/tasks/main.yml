@@ -1,0 +1,16 @@
+---
+- name: Tenant BD Subnet Assignment
+  aci_bd_subnet:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: no
+    tenant: "{{ item.tenant_name }}"
+    bd: "{{ item.tenant_bd_name }}"
+    subnet_name: "{{ item.tenant_bd_subnet_name }}"
+    gateway: "{{ item.tenant_bd_subnet_name }}"
+    scope: "{{ item.tenant_bd_subnet_scope }}"
+    mask: "{{ item.tenant_bd_subnet_mask }}"
+  with_items:
+    - '{{ SSOT_tenant|aci_listify("tenant","bd","subnet") }}'
+

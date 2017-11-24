@@ -1,0 +1,53 @@
+---
+- name: Print IP, USR, PASS for debug purposes. is group vars working here?
+  debug: 
+    msg: "DBG = {{ aci_ip }} _ {{ aci_username }} _ {{ aci_password }} _ {{ state }}"
+  when: debug == "true"
+
+- name: Item debug
+  debug: 
+    msg: "DBG_ITEM = {{ item }}"
+  with_items:
+    - '{{ SSOT_tenant|aci_listify("tenant","external_routed_network","epg","associate_contracts") }}'
+  when: debug == "true"
+
+- name: Create appropriate paylod based on the Contract Mode 
+  set_fact:
+    array_content: "{{ provider_case if (item.tenant_external_routed_network_epg_associate_contracts_mode == 'provider') else consumer_case }}"
+  with_items: 
+    - '{{ SSOT_tenant|aci_listify("tenant","external_routed_network","epg","associate_contracts") }}'
+  register: array_of_contents
+
+- name: array_of_contents Item debug
+  debug: 
+    msg: "DBG_ITEM = {{ item }}"
+  with_items:
+    - '{{ array_of_contents.results  }}'
+  # when: debug == "true"
+
+- name: make a list
+  set_fact: 
+       data_struc: "{{ array_of_contents.results | map(attribute='ansible_facts.array_content') | list }}"
+
+- name: LIST debug
+  debug: 
+    msg: "DBG_ITEM = {{ item }}"
+  with_items:
+    - '{{ data_struc }}'
+  # when: debug == "true"
+
+
+- name: Associate ( if not already associated ) Contracts to ONE external EPG
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: no
+    path: '{{ item[0].url }}'
+    method: '{{ method }}'
+    content: '{{ item[0].payload }}'
+  with_items: 
+     - '{{ data_struc }}'
+
+
+

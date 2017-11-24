@@ -1,0 +1,12 @@
+---
+- name: Tenant Update
+  aci_tenant:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: no
+    tenant: "{{ item.tenant_name }}"
+    description: "{{ item.tenant_description }}"
+    state: "{{ item.tenant_state }}"
+  with_items:
+    - '{{ SSOT_tenant|aci_listify("tenant") }}'

@@ -1,0 +1,14 @@
+---
+- name: Add External routed Network
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: no
+    path: /api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}.json
+    method: post
+    content:
+      {"l3extOut":{"attributes":{"dn":"uni/tn-Customer01/out-external_network"},"children":[{"bgpExtP":{"attributes":{"dn":"uni/tn-Customer01/out-external_network/bgpExtP"},"children":[]}},{"l3extRsEctx":{"attributes":{"tnFvCtxName":"Customer01_vrf_1"},"children":[]}},{"l3extRsL3DomAtt":{"attributes":{"tDn":"uni/l3dom-L3out_DM_3750"},"children":[]}}]}}
+  with_items: 
+    - '{{ SSOT_tenant|aci_listify("tenant","external_routed_network") }}'
+

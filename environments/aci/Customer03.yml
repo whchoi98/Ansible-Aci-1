@@ -1,0 +1,35 @@
+---
+  tenant:
+    - name: fradiben
+      state: present
+      description: fradiben@cisco.com ansible test environment 
+      contract:
+        - name: ansible_ctr
+          scope: tenant
+        - name: ansible_NOT_EXISTIMG
+          scope: tenant
+          #subject:
+          #  - name: internet
+          #    filter: 'default'
+      external_routed_network:
+        - name: external_network
+          vrf: Customer01_vrf
+          external_routed_domain: 99_router_01
+          epg: 
+            - name: pippo
+              subnets:
+                - ip: 123.34.23.123
+                  mask: 24
+                  scope: 'export-rtctrl'
+                  aggregate: 'shared-rtctrl'
+                - ip: 10.56.23.3
+                  mask: 30
+                  scope: 'export-rtctrl'
+                  aggregate: 'shared-rtctrl'
+              associate_contracts:
+                - name: ansible_ctr
+                  mode: consumer
+                  matchType: All 
+                - name: ansible_NOT_EXISTIMG
+                  mode: provider
+                  matchType: All 

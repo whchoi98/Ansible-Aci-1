@@ -1,0 +1,28 @@
+---
+- name: Print IP, USR, PASS for debug purposes. is group vars working here?
+  debug: 
+    msg: "DBG = {{ aci_ip }} _ {{ aci_username }} _ {{ aci_password }} "
+  when: debug == "true"
+
+- name: Item debug
+  debug: 
+    msg: "DBG_ITEM = {{ item }}"
+  with_items:
+     - '{{ SSOT_tenant|aci_listify("tenant","external_routed_network","epg") }}'
+  when: debug == "true"
+
+- name: Deploy an EPG 
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: no
+    path: api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/instP-{{item.tenant_external_routed_network_epg_name}}.json
+    method: '{{ method }}'
+    content: 
+        l3extInstP:
+            attributes:
+               name: "{{item.tenant_external_routed_network_epg_name}}"
+           
+  with_items: 
+    - '{{ SSOT_tenant|aci_listify("tenant","external_routed_network","epg") }}'

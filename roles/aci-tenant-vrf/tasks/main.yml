@@ -1,0 +1,13 @@
+---
+- name: Tenant VRF Update
+  aci_vrf:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: no
+    tenant: "{{ item.tenant_name }}"
+    vrf_name: "{{ item.tenant_vrf_name }}"
+    state: "{{ item.tenant_vrf_state }}"
+  with_items:
+    - '{{ SSOT_tenant|aci_listify("tenant","vrf") }}'
+

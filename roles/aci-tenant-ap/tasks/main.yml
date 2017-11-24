@@ -1,0 +1,12 @@
+---
+- name: Tenant Application Profile Update
+  aci_ap:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: no
+    tenant: "{{ item.tenant_name }}"
+    ap: "{{ item.tenant_app_name }}"
+  with_items:
+    - '{{ SSOT_tenant|aci_listify("tenant","app") }}'
+

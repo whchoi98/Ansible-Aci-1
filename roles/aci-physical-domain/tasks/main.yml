@@ -1,0 +1,20 @@
+---
+- name: Add physical domains
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: no
+    path: /api/node/mo/uni/phys-{{ item.access_policy_physical_domain_name }}.json
+    method: post
+    content:
+      physDomP:
+        attributes:
+          dn: uni/phys-{{ item.access_policy_physical_domain_name }}
+          name: '{{ item.access_policy_physical_domain_name }}'
+      children:
+        - infraRsVlanNs:
+          attributes:
+            tDn: uni/infra/vlanns-[{{ item.access_policy_physical_domain_vlan_pool }}]-{{ item.access_policy_physical_domain_vlan_pool_alloc }}
+  with_items: '{{ SSOT_fabric|aci_listify("access_policy","physical_domain") }}'
+

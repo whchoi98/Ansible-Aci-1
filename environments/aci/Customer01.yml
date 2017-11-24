@@ -1,0 +1,78 @@
+---
+  tenant:
+    - name: Customer01
+      state: present
+      description: Customer01
+      app:
+        - name: MyApp
+          epg:
+            - name: web
+              bd: web_bd
+              contract:
+                - name: internet
+                  type: consumer
+                - name: web_app
+                  type: consumer
+              static_path:
+                - pod: 1
+                  path: 'topology/pod-1/paths-997/pathep-[eth1/33]'
+                  encap: 'vlan-101'
+                  mode: regular
+                - pod: 1
+                  path: 'topology/pod-1/paths-997/pathep-[eth1/34]'
+                  encap: 'vlan-101'
+                  mode: native
+              domain:
+                - name: 99_baremetal_01
+                  type: phys
+            - name: app
+              bd: app_bd
+              contract:
+                - name: web_app
+                  type: provider
+              static_path:
+                - pod: 1
+                  path: 'topology/pod-1/paths-998/pathep-[eth1/35]'
+                  encap: 'vlan-102'
+                  mode: untagged
+              domain:
+                - name: 99_baremetal_01
+                  type: phys
+      external_routed_network:
+        - name: external_network
+          vrf: Customer01_vrf_1
+          external_routed_domain: 99_router_01
+      bd:
+        - name: app_bd
+          subnet:
+            - name: 10.10.10.1
+              mask: 24
+              scope: private
+          vrf: Customer01_vrf_1
+        - name: web_bd
+          subnet:
+            - name: 20.20.20.1
+              mask: 24
+              scope: public
+          vrf: Customer01_vrf_1
+          l3out:
+            - name: l3out
+      vrf:
+        - name: Customer01_vrf_1
+          state: present
+        - name: Customer01_vrf_2
+          state: present
+      contract:
+        - name: internet
+          scope: tenant
+          subject:
+            - name: internet
+              filter: 'default'
+        - name: web_app
+          scope: tenant
+          subject:
+            - name: web_app
+              filter: 'default'
+      protocol_policy:
+        - ospf_interface:
+          - name: router_01_ospf

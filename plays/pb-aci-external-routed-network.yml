@@ -1,0 +1,22 @@
+---
+## Input variables from Rundeck
+# SSoT_path
+# aci_ip
+# aci_username
+# aci_password
+# tenant_name
+# vrf_name
+
+
+- name: Create External routed network
+  hosts: "{{ target }}"
+  gather_facts: no
+  tasks:
+    - include_vars:
+        file: "{{ ACI_SSoT_path }}/{{ tenant_name }}.yml"
+        name: SSOT_tenant
+
+      # Intent Statement
+    - include_role:
+        name: aci-external-routed-network-vrf
+

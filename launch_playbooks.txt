@@ -1,0 +1,13 @@
+:: base command:
+ 
+ansible-playbook -i ACI_HOSTS ./plays/pb-aci-XXX.yml --extra-vars "ACI_SSoT_path=../environments/aci tenant_name=Customer0X target=aci-krk" -c local
+
+SAME COMMAND BUT ADDIOTIONAL FLAGs:
+
+:: to remove all the configs in a playbook:
+
+ansible-playbook -i ACI_HOSTS ./plays/pb-aci-XXX.yml --extra-vars "ACI_SSoT_path=../environments/aci tenant_name=Customer0X target=aci-krk action=delete" -c local
+
+:: to show debug messages: 
+
+ansible-playbook -i ACI_HOSTS ./plays/pb-aci-XXX.yml --extra-vars "ACI_SSoT_path=../environments/aci tenant_name=Customer0X target=aci-krk debug=true" -c local -vvv
