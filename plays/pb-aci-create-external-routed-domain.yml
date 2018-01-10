@@ -1,0 +1,15 @@
+---
+
+#3.1.2 Create External Routed Domain for each Physical External Node
+
+- name: Create External Routed Domain
+  hosts: "{{ target }}"
+  gather_facts: no
+
+  tasks:
+    - include_vars:
+        file: "{{ ACI_SSoT_path }}/fabric.yml"
+        name: SSOT_fabric
+
+    - include_role:
+         name: aci-external-domain

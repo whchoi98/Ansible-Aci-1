@@ -1,0 +1,50 @@
+---
+# 3.4.1.2.2 Create Logical Interface Profile
+
+- name: Add Logical Interface Profile for External Network Logical Node
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: /api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/lnodep-{{ item.tenant_external_routed_network_logical_node_profile_name }}/lifp-{{ item.tenant_external_routed_network_logical_node_profile_interface_name }}.json  # path to the logical node interface profile object
+    method: "{{ 'post' if (item.tenant_external_routed_network_logical_node_profile_interface_state == 'present') else 'delete' }}"
+    content:
+      l3extLIfP: # logical node interface profile object
+        attributes:
+          dn: uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/lnodep-{{ item.tenant_external_routed_network_logical_node_profile_name }}/lifp-{{ item.tenant_external_routed_network_logical_node_profile_interface_name }}
+          name: "{{ item.tenant_external_routed_network_logical_node_profile_interface_name }}"
+          rn: lifp-{{ item.tenant_external_routed_network_logical_node_profile_interface_name }}
+  with_items:
+    - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network','logical_node_profile','interface') }}"
+
+- name: Add a SVI (switched virtual interface) to the logical interface profile
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: /api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/lnodep-{{ item.tenant_external_routed_network_logical_node_profile_name }}/lifp-{{ item.tenant_external_routed_network_logical_node_profile_interface_name }}/rspathL3OutAtt-[{{ item.tenant_external_routed_network_logical_node_profile_interface_vpc_path }}].json
+    method: "{{ 'post' if (item.tenant_external_routed_network_logical_node_profile_interface_state == 'present') else 'delete' }}"
+    content:
+      l3extRsPathL3OutAtt: #Interface object
+        attributes:
+          dn: uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/lnodep-{{ item.tenant_external_routed_network_logical_node_profile_name }}/lifp-{{ item.tenant_external_routed_network_logical_node_profile_interface_name }}/rspathL3OutAtt-[{{ item.tenant_external_routed_network_logical_node_profile_interface_vpc_path }}]
+          encap: vlan-{{ item.tenant_external_routed_network_logical_node_profile_interface_vlan_id }} #Encapsulation field
+          ifInstT: ext-svi #type of interface
+          mac: "{{ item.tenant_external_routed_network_logical_node_profile_interface_mac }}" #interface"s mac address field
+          rn: rspathL3OutAtt-[{{ item.tenant_external_routed_network_logical_node_profile_interface_vpc_path }}] #interface"s path to a vpc field
+          tDn: "{{ item.tenant_external_routed_network_logical_node_profile_interface_vpc_path }}" 
+        children:
+          - l3extMember:
+              attributes:
+                addr: "{{ item.tenant_external_routed_network_logical_node_profile_interface_side_ip }}/{{ item.tenant_external_routed_network_logical_node_profile_interface_side_mask }}" #IP address field
+                side: "{{ item.tenant_external_routed_network_logical_node_profile_interface_side_side }}" # side IP field
+              children:
+                - l3extIp:
+                    attributes:
+                      addr: "{{ item.tenant_external_routed_network_logical_node_profile_interface_side_secondary }}/{{ item.tenant_external_routed_network_logical_node_profile_interface_side_secmask }}"  #secondary IP address
+
+  with_items:
+    - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network','logical_node_profile','interface', 'side') }}"
+

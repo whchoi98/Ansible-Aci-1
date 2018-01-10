@@ -1,5 +1,7 @@
-aci_ip: '{{ inventory_hostname }}:60191'
-aci_username: xxxxx
-aci_password: xxxxx
+aci_ip: '{{ inventory_hostname }}:port_placeholder'
+aci_username: username_placeholder
+aci_password: password_placeholder
+
 action: create
 debug: false
+

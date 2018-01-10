@@ -1,0 +1,30 @@
+# 3.4.1.3 Prepare Secondary External Node
+# 3.4.1.4  Create External Network (EPG) and Contract for the External Routed Network
+# This playbook can be used alone or can be used as part of a bigger playbook(e.g.: pb-aci-connectivity-sr-firewall)
+### This playbook creates External EPGs (for a secondary node) and a contract, than link them together 
+ 
+---
+- name: Create External Network (EPG) and Contract for the External Routed Network
+  hosts: "{{ target }}"
+  gather_facts: no
+
+  tasks:
+    - include_vars:
+        file: "{{ ACI_SSoT_path }}/{{ tenant_name }}.yml"
+        name: SSOT_tenant
+
+    # 3.4.1.4.1 Create External Network (EPG) for the External Routed Network
+    - include_role:
+         name: aci-create-extr-epg
+         
+    # 3.4.1.4.2 Create Subnet for the External Routed Network
+    - include_role:
+         name: aci-associate-subnet-to-epg
+    
+    # 3.4.1.5 Create Match-All Contract 
+    - include_role:
+         name: aci-create-match-all-contract
+         
+    # 3.4.1.6 Assign Match-all Contract as Consumed Contract to the External Network/EPG     
+    - include_role:
+         name: aci-associate-contract-to-extr-epg

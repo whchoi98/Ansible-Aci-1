@@ -1,0 +1,260 @@
+# Customer YAML file which decsribes all the object that will be deployed by the ansible playbooks.
+# To add new objects please COPY/PASTE the structure given here and change the values on the parameters
+# in case some varibale aren't fill out or they are taken out from the given structure anisble playbooks 
+# will fail their execution
+
+# The customer YAML file encapsulates all the configurations to be applied to a single Tenant object. 
+# These configurations are exclusive to the specified Tenant and get deleted if the Tenant is deleted.
+
+# Use the `state` varible under each top level object to add or remove the object itself during deployment 
+# state varible values: 
+#   - 'present': creates/verify teh existence of the given object 
+#   - 'absent': remove the obejct
+# If the `state` variable is 'present' but a value is changed in this file for the particular object, ansible will 
+# *update* that object on teh ACI fabic. Be careful to keep a consistent state to avoid ACI misconfiguration where not needed 
+ 
+---
+  # Root ot the configuration, you must use a Tenant entry as a top level object  
+  tenant:
+    # Tenant 1: an example on how to define it  
+    - name: Customer01
+      state: present
+      description: Customer01
+      # Create Application Profile section: Here are the details of application profiles used under this specific tenant   
+      app:
+        - name: MyApp
+          state: present
+          # Create EPGs section: Here are the details on EPGs used under this specific Application for this given Tenant 
+          # This epg section is for Application Profile EPGs' details
+          epg:
+            - name: web
+              state: present
+              bd: web_bd
+              contract:
+                - name: internet
+                  type: consumer
+                  state: present
+                - name: web_app
+                  type: consumer
+                  state: present
+              static_path:
+                - pod: 1
+                  path: 'topology/pod-1/paths-997/pathep-[eth1/33]'
+                  encap: 'vlan-101'
+                  mode: regular
+                - pod: 1
+                  path: 'topology/pod-1/paths-997/pathep-[eth1/34]'
+                  encap: 'vlan-101'
+                  mode: native
+              domain:
+                - name: 99_baremetal_01
+                  state: present
+                  type: phys
+            - name: app
+              state: present
+              bd: app_bd
+              contract:
+                - name: web_app
+                  state: present
+                  type: provider
+              static_path:
+                - pod: 1
+                  path: 'topology/pod-1/paths-998/pathep-[eth1/35]'
+                  encap: 'vlan-102'
+                  mode: untagged
+              domain:
+                - name: 99_baremetal_01
+                  state: present
+                  type: phys
+      # Create contract section: Here are details regarding External Routed Networks and External Network EPGs.
+      external_routed_network:
+        - name: l3out
+          state: present
+          vrf: Customer01_vrf_1
+          enable: bgp    #if BGP isn't supposed to be enabled, just leave this field empty
+          external_routed_domain: 99_router_01
+          # This epg section is for External Network EPGs' details.
+          epg: 
+            - name: pippo
+              state: present
+              subnets:
+                - ip: 123.34.23.123
+                  state: present
+                  mask: 24
+                  scope: 'export-rtctrl'
+                  aggregate: 'shared-rtctrl'
+                - ip: 10.56.23.3
+                  state: present
+                  mask: 30
+                  scope: 'export-rtctrl'
+                  aggregate: 'shared-rtctrl'
+              # In order to associate these contracts successfully, they have to already exist. The details for their creation are in the 'Create contract section' and these contract names must match the ones in that section.
+              associate_contracts:
+                - name: internet
+                  state: present
+                  mode: consumer
+                  matchType: All 
+                - name: web_app
+                  state: present
+                  mode: provider
+                  matchType: All     
+          # Here can be added the details regarding the Logical Node Profile and its configured nodes and Logical Interface Profiles
+          logical_node_profile:
+            - name: web_node
+              state: present
+              node:
+                - name: 'topology/pod-1/node-101'
+                  state: present
+                  routeid: 1.1.1.1
+                  static_route: 10.0.0.0
+                  static_route_mask: 24
+                  static_route_nh: 10.0.0.2
+                - name: 'topology/pod-1/node-102'
+                  state: present
+                  routeid: 1.1.1.2
+                  static_route: 10.0.0.0
+                  static_route_mask: 24
+                  static_route_nh: 10.0.0.3
+              interface:
+                - name: web_svi_interface
+                  state: present
+                  vlan_id: 4000
+                  mac: 00:22:BD:F8:19:FF
+                  vpc_path: topology/pod-1/protpaths-101-102/pathep-[Switch101-102_1-ports-17_PolGrp]
+                  side:
+                      - ip: 1.1.1.3
+                        mask: 24
+                        side: A
+                        secondary: 1.1.1.9
+                        secmask: 24
+                      - ip: 1.1.1.4
+                        mask: 24
+                        side: B
+                        secondary: 1.1.1.12
+                        secmask: 24
+                  subnets:
+                      - ip: 1.1.1.1
+                        mask: 32
+                      - ip: 172.16.0.0
+                        mask: 24
+                  # Here are the details establishing and verifying BGP Peering the BGP Peering     
+                  peer_ip: 192.168.1.2
+                  peer_topology: pod-1/node-101/
+                  peer_dom: common:default
+                  peer_ctrl: allow-self-as
+                  peer_asn: 65433
+      # Create BD section: Here are the details regarding the Bridge Domains and their associated elements      
+      bd:
+        - name: app_bd
+          state: present
+          subnet:
+            - name: 10.10.10.1
+              state: present
+              mask: 24
+              scope: private
+          vrf: Customer01_vrf_1
+        - name: web_bd
+          state: present
+          subnet:
+            - name: 20.20.20.1
+              state: present
+              mask: 24
+              scope: public
+          vrf: Customer01_vrf_1
+          l3out:
+            - name: l3out
+      # Create VRF section: When creating VRFs, this is where the roles get the details        
+      vrf:
+        - name: Customer01_vrf_1
+          state: present
+        - name: Customer01_vrf_2
+          state: present
+      # Create contract section: This is the section which contains information used to create new contracts  
+      contract:
+        - name: internet
+          state: present
+          scope: tenant
+          subject:
+            - name: internet
+              filter: 'default'
+        - name: web_app
+          state: present
+          scope: tenant
+          subject:
+            - name: web_app
+              state: present
+              filter: 'default'
+      #TODO: I believe this ospf_interface is not being used by any role. Not deleting it yet in case someone is developing something with it   
+      protocol_policy:
+        - ospf_interface:
+          - name: router_01_ospf
+      # State variable to be added     ~~~~ TODO ~~~~
+      L4_L7_devices:
+        - name: ssamiPfw2
+          type: PHYSICAL
+          state: present
+          device:
+            - name: Device1
+              user: username
+              pass: password
+              value: a
+              interface1: inside
+              intpath1: topology/pod-1/paths-101/pathep-[eth1/3]
+              encap1: vlan-101
+              interface2: external
+              intpath2: topology/pod-1/paths-101/pathep-[eth1/6]
+              encap2: vlan-102
+              clus1: Client
+              clus2: Server
+          phy_dom: ibm
+          service_graph_template:
+            - name: servGraph
+              state: present
+              con_conn:
+                - name: C1
+                  state: present
+                  type: L3
+                  node: N1
+                  term_node: T1
+                  f_conn: consumer
+              pro_conn:
+                - name: C2
+                  state: present
+                  type: L3
+                  node: N1
+                  term_node: T2
+                  f_conn: provider
+              nodes: 
+                - name: N1 
+                  state: present
+                  mgmt_type: false 
+                  function_type: FW_ROUTED 
+                  routing_mode: Redirect
+                  function_conn_consumer: consumer
+                  function_conn_provider: provider
+              term_node_conn:
+                - name: T1
+                  state: present
+              term_node_prov:
+                - name: T2
+                  state: present
+          cont:
+            - name: web_app
+              state: present
+              sg_name: servGraph
+              c_epg: web
+              s_epg: app
+              ap: MyApp
+              subj: subject
+              s_bd: app_bd
+              mac: FWIntIPMAC
+              node: N1
+              s_conn: provider
+              c_bd: web_bd
+              svr: Server
+              clnt: Client
+              c_conn: consumer
+              fw: ssamiPfw2
+
+
+

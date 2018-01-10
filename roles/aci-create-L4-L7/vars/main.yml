@@ -1,0 +1,3 @@
+action: create
+method: '{{ "post" if (action == "create") else "delete" }}'
+state: '{{ "present" if (method == "post") else "absent" }}'

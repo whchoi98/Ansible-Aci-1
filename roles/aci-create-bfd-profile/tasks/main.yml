@@ -1,0 +1,27 @@
+---
+# Create BFD profile
+
+- name: Create BFD Profile
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: "/api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/lnodep-{{ item.tenant_external_routed_network_logical_node_profile_name }}/lifp-{{item.tenant_external_routed_network_logical_node_profile_interface_name}}/bfdIfP.json"
+
+    method: "{{ 'post' if (item.tenant_external_routed_network_logical_node_profile_interface_state == 'present') else 'delete' }}"
+    content:
+      bfdIfP:
+        attributes:
+          rn: bfdIfP
+        children:
+        - bfdRsIfPol:
+            attributes:
+              tnBfdIfPolName: default
+              status: created,modified
+            children: []
+
+  with_items:
+    - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network','logical_node_profile','interface') }}"
+
+

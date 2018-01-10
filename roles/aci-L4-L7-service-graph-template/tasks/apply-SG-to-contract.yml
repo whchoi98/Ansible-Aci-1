@@ -1,0 +1,27 @@
+---
+- name: Apply Service Graph SG to Contract
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: "no"
+    path: /api/node/mo/uni/tn-{{item.tenant_name}}/brc-{{item.tenant_L4_L7_devices_cont_name}}.json
+    method:  "{{ 'post' if ( item.tenant_L4_L7_devices_cont_state == 'present') else 'delete' }}"
+    content:
+      vzBrCP: 
+        attributes: 
+          dn: "uni/tn-{{item.tenant_name}}/brc-{{item.tenant_L4_L7_devices_cont_name}}"
+        children: 
+          - vzSubj: 
+              attributes: 
+                dn: "uni/tn-{{item.tenant_name}}/brc-{{item.tenant_L4_L7_devices_cont_name}}/subj-{{item.tenant_L4_L7_devices_cont_name}}"
+                name: "{{item.tenant_L4_L7_devices_cont_name}}"
+         #       status: created
+              children: 
+                - vzRsSubjGraphAtt: 
+                    attributes: 
+                      tnVnsAbsGraphName: "{{item.tenant_L4_L7_devices_cont_sg_name}}"
+           #           status: "created,modified"
+  with_items: 
+    - '{{ SSOT_tenant|aci_listify("tenant","L4_L7_devices","cont") }}'
+

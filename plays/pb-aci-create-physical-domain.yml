@@ -1,0 +1,15 @@
+---
+
+#3.1.1 Create Physical Domain for each Physical External Node
+
+- name: Create Physical Domain
+  hosts: "{{ target }}"
+  gather_facts: no
+
+  tasks:
+    - include_vars:
+        file: "{{ ACI_SSoT_path }}/fabric.yml"
+        name: SSOT_fabric
+
+    - include_role:
+         name: aci-physical-domain

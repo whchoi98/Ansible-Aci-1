@@ -1,0 +1,31 @@
+---
+- name: Apply Service Graph Client Confg
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: "no"
+    path: /api/node/mo/uni/tn-{{item.tenant_name}}/ldevCtx-c-{{ item.tenant_L4_L7_devices_cont_name }}-g-servGraph-n-{{item.tenant_L4_L7_devices_cont_node}}/lIfCtx-c-{{item.tenant_L4_L7_devices_cont_c_conn}}.json
+    method:  "{{ 'post' if ( item.tenant_L4_L7_devices_cont_state == 'present') else 'delete' }}"
+    content:
+      vnsLIfCtx: 
+        attributes: 
+          dn: "uni/tn-{{item.tenant_name}}/ldevCtx-c-{{ item.tenant_L4_L7_devices_cont_name }}-g-servGraph-n-{{item.tenant_L4_L7_devices_cont_node}}/lIfCtx-c-{{item.tenant_L4_L7_devices_cont_c_conn}}"
+          connNameOrLbl: "{{item.tenant_L4_L7_devices_cont_c_conn}}"
+          #status: "created,modified"
+          rn: "lIfCtx-c-{{item.tenant_L4_L7_devices_cont_c_conn}}"
+        children: 
+          - vnsRsLIfCtxToBD: 
+              attributes: 
+                tDn: "uni/tn-{{item.tenant_name}}/BD-{{item.tenant_L4_L7_devices_cont_c_bd}}"
+           #     status: "created,modified"
+          - vnsRsLIfCtxToLIf: 
+              attributes: 
+                tDn: "uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_cont_fw}}/lIf-{{item.tenant_L4_L7_devices_cont_clnt}}"
+#                status: "created,modified"
+          - vnsRsLIfCtxToSvcRedirectPol: 
+              attributes: 
+                tDn: "uni/tn-{{item.tenant_name}}/svcCont/svcRedirectPol-{{item.tenant_L4_L7_devices_cont_mac}}"
+#                status: "created,modified"
+  with_items: 
+    - '{{ SSOT_tenant|aci_listify("tenant","L4_L7_devices","cont") }}'

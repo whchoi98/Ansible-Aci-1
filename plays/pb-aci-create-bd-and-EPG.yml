@@ -1,0 +1,24 @@
+# 3.2.2	 Under Service Recipient Tenant, Create Bridge Domains According Security Class definitions and EPG according Security Zone definition per each Class
+
+---
+- name: Given a Tenant, Create Bridge Domains and EPG according Security Zone definition per each Class
+  hosts: "{{ target }}"
+  gather_facts: no
+
+  tasks:
+    - include_vars:
+        file: "{{ ACI_SSoT_path }}/{{ tenant_name }}.yml"
+        name: SSOT_tenant
+
+    # 3.2.2.1 Create ACI Bridge Domain and Assign Private Network
+    - include_role:
+        name: aci-tenant-bd
+        
+    # 3.2.2.2 Add Subnet to ACI Bridge Domain    
+    - include_role:
+        name: aci-tenant-bd-subnet
+        
+    # 3.2.2.3 Create ACI EPGs according to Security Zone definition per each Class 
+    - include_role:
+        name: aci-tenant-epg-bd
+        

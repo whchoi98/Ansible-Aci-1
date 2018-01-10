@@ -1,0 +1,37 @@
+---
+# 3.1.2 Create External Routed Domain
+
+- name: Create External Routed Domain with associated VLAN Pool and Security Domains
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: /api/node/mo/uni/l3dom-{{ item.access_policy_external_routed_domain_name }}.json  # Path to the external routed domain object
+    method: "{{ 'post' if (item.access_policy_external_routed_domain_state == 'present') else 'delete' }}"
+    content:
+      l3extDomP:
+        attributes:
+          name: "{{ item.access_policy_external_routed_domain_name }}"
+        children:
+        - aaaDomainRef:  # Security Domain Object
+            attributes:
+              name: "{{ item.access_policy_external_routed_domain_security_domains_name }}"
+        - infraRsVlanNs:    # The infraRsVlanNs object contains the VLAN pool information (that"s getting assigned to the external routed domain object)
+            attributes:
+              tDn: uni/infra/vlanns-[{{ item.access_policy_external_routed_domain_vlan_pool }}]-{{ item.access_policy_external_routed_domain_vlan_pool_alloc }}
+  with_items: "{{ SSOT_fabric|aci_listify('access_policy','external_routed_domain', 'security_domains') }}"
+
+- name: Associate Attachable Entity Profile to External Routed Domain
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: /api/node/mo/uni/infra/attentp-{{item.access_policy_external_routed_domain_aep}}.json
+    method: "{{ 'post' if (item.access_policy_external_routed_domain_security_domains_state == 'present') else 'delete' }}"
+    content:
+      infraRsDomP:
+        attributes:
+          tDn: uni/l3dom-{{item.access_policy_external_routed_domain_name}}
+  with_items: "{{ SSOT_fabric|aci_listify('access_policy','external_routed_domain', 'security_domains') }}"

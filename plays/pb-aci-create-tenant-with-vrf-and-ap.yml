@@ -1,0 +1,22 @@
+# 3.2.1	 Create Tenants each of them with (any number of) Virtual Private Network (VRF) context and (any number of ) Application Profile on ACI Fabric for the Service Recipient
+---
+- name: Create a Tenant with Virtual Private Network (VRF) context and Application Profile on ACI Fabric for the Service Recipient
+  hosts: "{{ target }}"
+  gather_facts: no
+
+  tasks:
+    - include_vars:
+        file: "{{ ACI_SSoT_path }}/{{ tenant_name }}.yml"
+        name: SSOT_tenant
+
+    # Create Tenants (multiple tenants created if specified in the custumer YAML file )
+    - include_role:
+        name: aci-tenant
+        
+    # Create and associate (any number of) VRFs to the Tenants (if multiple VRF are specified under multiple tenants in custumer YAML file )    
+    - include_role:
+        name: aci-tenant-vrf
+        
+    # Create and associate (any number of) APs to the Tenants (if multiple APs are specified under multiple tenants in custumer YAML file )     
+    - include_role:
+        name: aci-tenant-ap

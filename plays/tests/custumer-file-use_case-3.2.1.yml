@@ -1,0 +1,45 @@
+---
+  tenant:
+    - name: TEST01
+      state: present
+      description: Customer01
+      app:
+        - name: MyApp
+            - name: app
+              bd: app_bd
+      bd:
+        - name: app_bd
+          subnet:
+            - name: 10.10.10.1
+              mask: 24
+              scope: private
+          vrf: Customer01_vrf_1
+        - name: web_bd
+          subnet:
+            - name: 20.20.20.1
+              mask: 24
+              scope: public
+          vrf: Customer01_vrf_1
+          l3out:
+            - name: l3out
+      vrf:
+        - name: Customer01_vrf_1
+          state: present
+        - name: Customer01_vrf_2
+          state: present 
+
+    - name: TEST02
+      description: tenant2
+      app:
+          - name: MyApp22
+            epg:
+               - name: web22
+                
+      bd:
+          - name: test_bd_2
+            subnet:
+                - name: 2.20.2.2
+                  mask: 24
+                  scope: public
+      vrf:
+          - name: test2vrf

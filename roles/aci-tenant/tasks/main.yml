@@ -1,12 +1,14 @@
+# 3.2.1	Creates/updates Tenants in ACI Fabric -if multiple tenants are specified in the YAML file, it creates/updates all 
 ---
-- name: Tenant Update
-  aci_tenant:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+- name: Tenant (Create or Update) on ACI Fabric  
+  aci_tenant: # This module manages tenants on cisco aci fabric. It works with the internal APIC class fv:Tenant
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     validate_certs: no
     tenant: "{{ item.tenant_name }}"
     description: "{{ item.tenant_description }}"
-    state: "{{ item.tenant_state }}"
+    # action of the module depending on "state" property. This property can either be 'present' or 'absent' depending on whether the aciton is POST or DELETE, respectively
+    state: "{{ item.tenant_state }}"   
   with_items:
-    - '{{ SSOT_tenant|aci_listify("tenant") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant') }}"

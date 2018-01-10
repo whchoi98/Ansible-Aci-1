@@ -1,0 +1,77 @@
+---
+- name: Create L4 L7 Devices Physical FW 
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: "no"
+    path: /api/node/mo/uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}.json
+    method:  "{{ 'post' if ( item.tenant_L4_L7_devices_state == 'present') else 'delete' }}"
+    content:
+      vnsLDevVip:
+        attributes:
+          dn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}
+          svcType: "FW"
+          managed: "false"
+          name: '{{item.tenant_L4_L7_devices_name}}'
+          devtype: '{{item.tenant_L4_L7_devices_type}}'
+          rn: lDevVip-{{item.tenant_L4_L7_devices_name}}
+        children:
+          - vnsCDev:
+              attributes:
+                dn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}/cDev-{{item.tenant_L4_L7_devices_device_name}}
+                name: '{{item.tenant_L4_L7_devices_device_name}}'
+                rn: cDev-{{item.tenant_L4_L7_devices_device_name}}
+              children:
+                - vnsCCred:
+                    attributes:
+                      dn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}/cDev-{{item.tenant_L4_L7_devices_device_name}}/cCred
+                      name: '{{item.tenant_L4_L7_devices_device_user}}'
+                      value: "a"
+                      rn: "cCred"
+                - vnsCCredSecret:
+                    attributes:
+                      dn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}/cDev-{{item.tenant_L4_L7_devices_device_name}}/cCredSecret
+                      name: '{{item.tenant_L4_L7_devices_device_pass}}'
+                      value: "a"
+                      rn: "cCredSecret"
+                - vnsCIf:
+                    attributes:
+                      dn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}/cDev-{{item.tenant_L4_L7_devices_device_name}}/cIf-[{{item.tenant_L4_L7_devices_device_interface1}}]
+                      name: '{{item.tenant_L4_L7_devices_device_interface1}}'
+                    children:  
+                      - vnsRsCIfPathAtt: 
+                          attributes: 
+                            tDn: '{{item.tenant_L4_L7_devices_device_intpath1}}'
+                - vnsCIf:
+                    attributes:
+                      dn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}/cDev-{{item.tenant_L4_L7_devices_device_name}}/cIf-[{{item.tenant_L4_L7_devices_device_interface2}}]
+                      name: '{{item.tenant_L4_L7_devices_device_interface2}}'
+                    children:
+                      - vnsRsCIfPathAtt: 
+                          attributes: 
+                            tDn: '{{item.tenant_L4_L7_devices_device_intpath2}}'
+          - vnsLIf:
+              attributes:
+                dn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}/lIf-{{item.tenant_L4_L7_devices_device_clus1}}
+                name: '{{item.tenant_L4_L7_devices_device_clus1}}'
+                encap: '{{item.tenant_L4_L7_devices_device_encap1}}'
+              children:
+                - vnsRsCIfAttN:
+                    attributes:
+                      tDn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}/cDev-{{item.tenant_L4_L7_devices_device_name}}/cIf-[{{item.tenant_L4_L7_devices_device_interface1}}]
+          - vnsLIf:
+              attributes:
+                dn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}/lIf-{{item.tenant_L4_L7_devices_device_clus2}}
+                name: '{{item.tenant_L4_L7_devices_device_clus2}}'
+                encap: '{{item.tenant_L4_L7_devices_device_encap2}}'
+              children:
+                - vnsRsCIfAttN:
+                    attributes:
+                      tDn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}/cDev-{{item.tenant_L4_L7_devices_device_name}}/cIf-[{{item.tenant_L4_L7_devices_device_interface2}}]
+          - vnsRsALDevToPhysDomP:
+              attributes:
+                tDn: uni/phys-{{item.tenant_L4_L7_devices_phy_dom}}
+
+  with_items: 
+    - '{{ SSOT_tenant|aci_listify("tenant","L4_L7_devices","device") }}'

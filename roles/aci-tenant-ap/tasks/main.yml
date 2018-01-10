@@ -1,12 +1,16 @@
+# 3.2.1	(sub-task) Creates/Updates and  Associate  an AP to a Tenant
+
+# Creates/updates  and associates (any number of) APs to (any number of ) Tenants in ACI Fabric -if multiple tenants are specified in the YAML file, it creates/updates all 
 ---
-- name: Tenant Application Profile Update
-  aci_ap:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+- name: Tenant Application Profile Create/Update
+  aci_ap: # This module manages top level Application Profile (AP) objects on cisco fabric. It works with the internal APIC class fv:Ap
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     validate_certs: no
     tenant: "{{ item.tenant_name }}"
     ap: "{{ item.tenant_app_name }}"
+    state: "{{ item.tenant_app_state }}"  # action of the module depending on "state" property. This property can either be 'present' or 'absent' depending on whether the aciton is POST or DELETE, respectively
   with_items:
-    - '{{ SSOT_tenant|aci_listify("tenant","app") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','app') }}"
 

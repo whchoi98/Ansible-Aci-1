@@ -1,0 +1,24 @@
+---
+- name: Create L4 L7 Devices Consumer Connection 
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: "no"
+    path: /api/node/mo/uni/tn-{{item.tenant_name}}/AbsGraph-{{item.tenant_L4_L7_devices_service_graph_template_name}}/AbsConnection-{{item.tenant_L4_L7_devices_service_graph_template_con_conn_name}}.json
+    method:  "{{ 'post' if ( item.tenant_L4_L7_devices_service_graph_template_con_conn_state == 'present') else 'delete' }}"
+    content:
+      vnsAbsConnection:
+        attributes:
+          adjType: "{{item.tenant_L4_L7_devices_service_graph_template_con_conn_type}}"
+          dn: uni/tn-{{item.tenant_name}}/AbsGraph-{{item.tenant_L4_L7_devices_service_graph_template_name}}/AbsConnection-{{item.tenant_L4_L7_devices_service_graph_template_con_conn_name}}
+          name: "{{item.tenant_L4_L7_devices_service_graph_template_con_conn_name}}"
+        children:
+        - vnsRsAbsConnectionConns:
+            attributes:
+              tDn: uni/tn-{{item.tenant_name}}/AbsGraph-{{item.tenant_L4_L7_devices_service_graph_template_name}}/AbsNode-{{item.tenant_L4_L7_devices_service_graph_template_con_conn_node}}/AbsFConn-{{item.tenant_L4_L7_devices_service_graph_template_con_conn_f_conn}}
+        - vnsRsAbsConnectionConns:
+            attributes:
+              tDn: uni/tn-{{item.tenant_name}}/AbsGraph-{{item.tenant_L4_L7_devices_service_graph_template_name}}/AbsTermNodeCon-{{item.tenant_L4_L7_devices_service_graph_template_con_conn_term_node}}/AbsTConn
+  with_items:
+    - '{{ SSOT_tenant|aci_listify("tenant","L4_L7_devices","service_graph_template","con_conn") }}'

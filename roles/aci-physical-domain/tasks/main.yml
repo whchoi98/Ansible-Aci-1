@@ -1,20 +1,21 @@
----
-- name: Add physical domains
+# 3.1.1 Create Physical Domain for each Physical External Node and assign a VLAN Pool name to the domain
+# The assumption is that VLAN Pools already exist when this role is called.
+
+- name: Add physical domains for each physical external node.
   aci_rest:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     validate_certs: no
     path: /api/node/mo/uni/phys-{{ item.access_policy_physical_domain_name }}.json
-    method: post
+    method: "{{ 'post' if (item.access_policy_physical_domain_state == 'present') else 'delete'}}"
     content:
       physDomP:
-        attributes:
-          dn: uni/phys-{{ item.access_policy_physical_domain_name }}
-          name: '{{ item.access_policy_physical_domain_name }}'
-      children:
-        - infraRsVlanNs:
-          attributes:
-            tDn: uni/infra/vlanns-[{{ item.access_policy_physical_domain_vlan_pool }}]-{{ item.access_policy_physical_domain_vlan_pool_alloc }}
-  with_items: '{{ SSOT_fabric|aci_listify("access_policy","physical_domain") }}'
-
+        attributes: 
+          name: "{{ item.access_policy_physical_domain_name }}"  # physDomP is the phyisical domain object itself, here we define its name
+        children:
+        - infraRsVlanNs:                 
+            attributes:
+              tDn: uni/infra/vlanns-[{{ item.access_policy_physical_domain_vlan_pool }}]-{{ item.access_policy_physical_domain_vlan_pool_alloc }}
+                  # this tDn attribute is responsible for assigning the VLAN Pool name to the domain
+  with_items: "{{ SSOT_fabric|aci_listify('access_policy','physical_domain') }}"

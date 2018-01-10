@@ -1,3 +1,6 @@
 *.swp
 *.pyc
 *.retry
+.DS_Store
+./group_vars/*
+.ACI_HOSTS1

@@ -1,14 +1,60 @@
+# 3.4.1.1  Create External Routed Network 
+
+# This role is repeated in different use cases. It basically create (any number of ) L3Outs on ACI defined in each Tenant definition 
+
 ---
+
+- name: Add External routed Network (with BGP enabled)
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: "no"
+    path: "/api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}.json" #path to the external routed network object
+    method: "{{ 'post' if item.tenant_external_routed_network_state=='present' }}"
+    content:
+      l3extOut: #external routed network object
+        attributes:
+          dn: "uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}"
+          name: "{{ item.tenant_external_routed_network_name }}"
+          enforceRtctrl: "export,import" # Route Control Enforcement flags
+        children:
+          - l3extRsEctx:
+              attributes:
+                tnFvCtxName: "{{ item.tenant_external_routed_network_vrf }}" # VRF name
+          - l3extRsL3DomAtt:
+              attributes:
+                tDn: "uni/l3dom-{{ item.tenant_external_routed_network_external_routed_domain }}" # External Routed Domain link
+          - bgpExtP:
+              attributes:
+                dn: "uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/bgpExtP" #enable BGP
+  when: item.tenant_external_routed_network_enable == 'bgp'
+  with_items: 
+    - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network') }}"
+  
+
 - name: Add External routed Network
   aci_rest:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
-    validate_certs: no
-    path: /api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}.json
-    method: post
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: "no"
+    path: "/api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}.json" #path to the external routed network object
+    method: "{{ 'post' if item.tenant_external_routed_network_state=='present' }}"
     content:
-      {"l3extOut":{"attributes":{"dn":"uni/tn-Customer01/out-external_network"},"children":[{"bgpExtP":{"attributes":{"dn":"uni/tn-Customer01/out-external_network/bgpExtP"},"children":[]}},{"l3extRsEctx":{"attributes":{"tnFvCtxName":"Customer01_vrf_1"},"children":[]}},{"l3extRsL3DomAtt":{"attributes":{"tDn":"uni/l3dom-L3out_DM_3750"},"children":[]}}]}}
+      l3extOut: #external routed network object
+        attributes:
+          dn: "uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}"
+          name: "{{ item.tenant_external_routed_network_name }}"
+          enforceRtctrl: "export,import" # Route Control Enforcement flags
+        children:
+          - l3extRsEctx:
+              attributes:
+                tnFvCtxName: "{{ item.tenant_external_routed_network_vrf }}" # VRF name
+          - l3extRsL3DomAtt:
+              attributes:
+                tDn: "uni/l3dom-{{ item.tenant_external_routed_network_external_routed_domain }}" # External Routed Domain link
+  when: item.tenant_external_routed_network_enable == ''
   with_items: 
-    - '{{ SSOT_tenant|aci_listify("tenant","external_routed_network") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network') }}"
 

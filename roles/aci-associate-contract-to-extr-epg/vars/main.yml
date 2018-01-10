@@ -1,12 +1,9 @@
-action: create
-method: '{{ "post" if (action == "create") else "delete" }}'
-state: '{{ "present" if (method == "post") else "absent" }}'
-
 
 #### Type of contract associations
 
 provider_case:
   - url: api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/instP-{{item.tenant_external_routed_network_epg_name}}/rsprov-{{ item.tenant_external_routed_network_epg_associate_contracts_name }}.json
+    state:  "{{item.tenant_external_routed_network_epg_associate_contracts_state}}"
     payload:
        fvRsProv:
          attributes:
@@ -16,6 +13,7 @@ provider_case:
 
 consumer_case:
    - url: api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/instP-{{item.tenant_external_routed_network_epg_name}}.json
+     state:  "{{item.tenant_external_routed_network_epg_associate_contracts_state}}"
      payload:
          fvRsCons:
              attributes:

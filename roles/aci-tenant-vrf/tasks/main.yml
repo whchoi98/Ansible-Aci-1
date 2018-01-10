@@ -1,13 +1,16 @@
+# 3.2.1	(sub-task) Creates/Updates and Associate VRF to Tenants
+
+# Creates/updates and associates (any number of) VRFs to (any number of ) Tenants in ACI Fabric -if multiple tenants are specified in the YAML file, it creates/updates all 
 ---
-- name: Tenant VRF Update
-  aci_vrf:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+- name: Tenant VRF Creates/Update
+  aci_vrf: #This module manages VRF (private networks aka contexts) on cisco aci fabrics. Each context is a private network associated to a tenant, i.e. VRF. It works with the internal APIC class fv:Ctx
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     validate_certs: no
     tenant: "{{ item.tenant_name }}"
     vrf_name: "{{ item.tenant_vrf_name }}"
     state: "{{ item.tenant_vrf_state }}"
   with_items:
-    - '{{ SSOT_tenant|aci_listify("tenant","vrf") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','vrf') }}"
 

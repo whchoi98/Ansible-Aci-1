@@ -1,0 +1,16 @@
+---
+# 3.1.4.3 Create LLDP policy
+
+- name: Create a LLDP policy
+  aci_intf_policy_lldp:  # this module manages LLDP interface policies on Cisco ACI fabrics. It works with the internal APIC class lldp:ifPol
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    lldp_policy: "{{ item.access_policy_interface_policy_lldp_name }}"  # LLDP interface policy name 
+    receive_state: "{{ item.access_policy_interface_policy_lldp_receive_state }}"  # enable or disable Receive state
+    transmit_state: "{{ item.access_policy_interface_policy_lldp_transmit_state }}"   # enable or disable transmit state
+    state: "{{ item.access_policy_interface_policy_lldp_state }}"   # present or absent for adding or removing, query for listing an object or multiple objects
+  with_items: 
+    - "{{ SSOT_fabric|aci_listify('access_policy','interface_policy_lldp') }}"
+

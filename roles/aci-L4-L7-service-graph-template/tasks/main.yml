@@ -1,0 +1,21 @@
+# Create SG Tempalte
+- import_tasks: service-graph-template.yml
+# Create SG Template Consumer Connections
+- import_tasks: service-graph-consumer-connections.yml
+# Create SG Template Provider Connections
+- import_tasks: service-graph-provider-connections.yml
+# Create SG Template Device
+- import_tasks: service-graph-device.yml
+# Create SG Template Consumer
+- import_tasks: service-graph-consumer.yml
+# Create SG Template Provider
+- import_tasks: service-graph-provider.yml
+# Apply SG EPGs to Contract
+- import_tasks: apply-epg-to-contract.yml
+# Apply SG to Contract
+- import_tasks: apply-SG-to-contract.yml
+# Apply SG Server Confg
+- import_tasks: apply-server-config.yml
+# Apply SG Client Config
+- import_tasks: apply-client-config.yml
+

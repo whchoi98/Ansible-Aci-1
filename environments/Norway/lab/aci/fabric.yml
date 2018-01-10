@@ -1,0 +1,214 @@
+# Customer YAML file which decsribes all the object that will be deployed by the ansible playbooks.
+# To add new objects please COPY/PASTE the structure given here and change the values on the parameters
+# in case some varibale aren't fill out or they are taken out from the given structure anisble playbooks 
+# will fail their execution
+
+# The fabric YAML file encapsulates all the configurations to be applied to the ACI Fabric itself, which is used by all the tenants. 
+# These configurations are not associated to a specific Tenant so they remain even if Tenants are deleted.
+
+# Use the `state` varible under each top level object to add or remove the object itself during deployment 
+# state varible values: 
+#   - 'present': creates/verify teh existence of the given object 
+#   - 'absent': remove the obejct
+# If the `state` variable is 'present' but a value is changed in this file for the particular object, ansible will 
+# *update* that object on teh ACI fabic. Be careful to keep a consistent state to avoid ACI misconfiguration where not needed 
+
+---
+    access_policy:  # Here are all the details regarding access policies of the fabric
+      - switch_policy_virtual_port_channel:
+        - name: '997_998'
+          state: present
+          id: 997
+          switch1: 997
+          switch2: 998
+      - switch_policy_profile:
+        - name: leaf_997
+          leaf_selector:
+            - name: 997
+              state: present
+              from: 997
+              to: 997
+          interface_selector_profile:
+            - name: leaf_997
+              state: present
+        - name: leaf_998
+          leaf_selector:
+            - name: 998
+              state: present
+              from: 998
+              to: 998
+          interface_selector_profile:
+            - name: leaf_998
+              state: present
+        - name: leaf_997_998
+          leaf_selector:
+            - name: '997_998'
+              state: present
+              from: 997
+              to: 998
+          interface_selector_profile:
+            - name: leaf_997_998
+              state: present
+      - interface_policy_stp:
+        - name: test
+          ctrl: bpdu-guard
+          state: present
+      - interface_policy_link_level:
+        - name: testing
+          state: present
+          autoNeg: "on"
+          speed: '10G'
+          linkDebounce: 100
+          fecMode: cl74-fc-fec
+      - interface_policy_lldp:
+        - name: LLDPon
+          state: present
+          receive_state: enabled
+          transmit_state: enabled
+      - interface_policy_cdp:
+        - name: test_cdp
+          state: present
+          adminSt: disabled
+      - interface_policy_port_channel:
+        - name: LACPactive
+          state: present
+          mode: active
+          ctrl: susp-individual,graceful-conv,fast-sel-hot-stdby
+          minLinks: 1
+          maxLinks: 16
+      - interface_policy_policy_group_vpc:
+        - name: 99_router_01
+          state: present
+          lldp: LLDPon
+          port_channel: LACPactive
+          aep: 99_router_01
+      - interface_policy_policy_group_access:
+        - name: 99_baremetal_01
+          state: present
+          lldp: default
+          mcp: default
+          stp: default
+          stormcontrol: default
+          l2: default
+          portsecurity: default
+          linklevel: default
+          cdp: default
+          aep: 99_baremetal_01
+          ingress: default
+          egress: default
+          mon: default
+          attEnt: default
+          prioFlow: default
+          fibreChannel: default
+          slowDrain: default
+      - interface_policy_policy_group_pc:
+        - name: 99_baremetal_01
+          state: present
+          lldp: default
+          mcp: default
+          stp: default
+          stormcontrol: default
+          l2: default
+          portsecurity: default
+          linklevel: default
+          cdp: default
+          aep: 99_baremetal_01
+          ingress: default
+          egress: default
+          mon: default
+          attEnt: default
+          prioFlow: default
+          pchannelP: default
+          fibreChannel: default
+          slowDrain: default
+          lagT: link #or node for VPC
+
+      - interface_policy_profile:
+        - name: leaf_997_998teST
+          state: present
+          interface_selector:
+            - name: Router01
+              state: present
+              int_card: 1
+              int_to: 22
+              int_from: 18
+              policy_group: 99_baremetal_01
+              policy_group_type: accbundle #accbundle for VPC and PC groups, accportgrp for access port groups
+        - name: leaf_997
+          state: present
+          interface_selector:
+            - name: Server01
+              state: present
+              int_card: 1
+              int_to: 33
+              int_from: 31
+              policy_group: 99_baremetal_01
+              policy_group_type: accportgrp
+            - name: Server02
+              state: present
+              int_card: 1
+              int_to: 34
+              int_from: 30
+              policy_group: 99_baremetal_01
+              policy_group_type: accportgrp 
+        - name: leaf_998
+          state: present
+          interface_selector:
+            - name: Server02
+              state: present
+              int_card: 1
+              int_to: 35
+              int_from: 29
+              policy_group: 99_baremetal_01
+              policy_group_type: accportgrp
+      - vlan_pool:
+        - name: 99_router_01
+          state: present
+          alloc: static
+          encap_block:
+            - from: 201
+              to: 201
+        - name: 99_baremetal_01
+          state: present
+          alloc: static
+          encap_block:
+            - from: 101
+              to: 102
+      - aep:
+        - name: 99_router_01
+          state: present
+          domain:
+            - name: l3dom-99_router_01
+              state: present
+        - name: 99_baremetal_01
+          state: present
+          domain:
+            - name: phys-99_baremetal_01
+              state: present
+      - external_routed_domain:
+        - name: 99_router_01
+          state: present
+          vlan_pool: 99_router_01
+          vlan_pool_alloc: static
+          aep: 99_baremetal_01
+          security_domains:
+            - name: Security56
+              state: present
+            - name: igderyba
+              state: present
+        - name: 99_baremetal_01
+          state: present
+          vlan_pool: 99_baremetal_01
+          vlan_pool_alloc: static
+          aep: 99_router_01
+          security_domains:
+            - name: tn-1
+              state: present
+            - name: Security56
+              state: present
+      - physical_domain:
+        - name: 99_baremetal_01
+          state: present
+          vlan_pool: 99_baremetal_01
+          vlan_pool_alloc: static
+

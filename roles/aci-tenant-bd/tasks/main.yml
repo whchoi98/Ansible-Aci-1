@@ -1,13 +1,17 @@
+# 3.2.2.1 Create ACI Bridge Domain and Assign Private Network
+
+## We expect that this role creates/updates (any numeber of) BDs for each Tenant specified in the YAML customer file
 ---
-- name: Tenant BD Create
-  aci_bd:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+- name: Tenant BD Create/Update and Associate to Specified Tenant
+  aci_bd:  # This module manages bridge domains (bd) on cisco aci fabrics. It works with the internal APIC class fv:BD
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     validate_certs: no
     tenant: "{{ item.tenant_name }}"
     bd: "{{ item.tenant_bd_name }}"
     vrf: "{{ item.tenant_bd_vrf }}"
+    state: "{{ item.tenant_bd_state }}" # action of the module depending on "state" property. This property can either be 'present' or 'absent' depending on whether the it's supposed to add or delete, respectively
   with_items:
-    - '{{ SSOT_tenant|aci_listify("tenant","bd") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','bd') }}"
 

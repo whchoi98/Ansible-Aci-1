@@ -1,0 +1,27 @@
+---
+# 3.1.4.2.3 Create Peer Connectivity Profile
+
+- name: Create Peer Connectivity Profile
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: /api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/lnodep-{{ item.tenant_external_routed_network_logical_node_profile_name }}/lifp-{{ item.tenant_external_routed_network_logical_node_profile_interface_name }}/rspathL3OutAtt-[{{ item.tenant_external_routed_network_logical_node_profile_interface_vpc_path }}]/peerP-[{{ item.tenant_external_routed_network_logical_node_profile_interface_peer_ip }}].json
+    # path to the peer connectivity profile object
+    method: "{{ 'post' if (item.tenant_external_routed_network_logical_node_profile_state == 'present') else 'delete' }}"
+    content:
+      bgpPeerP: # Peer connectivity profile object"
+        attributes:
+          addr: "{{ item.tenant_external_routed_network_logical_node_profile_interface_peer_ip }}" #The address of the peer itself
+          ctrl: "{{ item.tenant_external_routed_network_logical_node_profile_interface_peer_ctrl }}" #BGP Controls flags
+         
+          rn: peerP-[{{ item.tenant_external_routed_network_logical_node_profile_interface_peer_ip }}]
+        children:
+          - bgpAsP: #Peer connectivity profile AS object and attributes
+              attributes:
+                asn: "{{ item.tenant_external_routed_network_logical_node_profile_interface_peer_asn }}" #Remote AS number         
+                rn: as
+  with_items:
+    - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network','logical_node_profile', 'interface') }}"
+

@@ -1,0 +1,41 @@
+---
+- name: Apply Service Graph EPGs to contract 
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: "no"
+    path: /api/node/mo/uni/tn-{{item.tenant_name}}.json
+    method:  "{{ 'post' if ( item.tenant_L4_L7_devices_cont_state == 'present') else 'delete' }}"
+    content:
+      fvTenant: 
+        attributes: 
+          dn: "uni/tn-{{item.tenant_name}}"
+          #status: modified
+        children: 
+          - fvAp: 
+              attributes: 
+                dn: "uni/tn-{{item.tenant_name}}/ap-{{item.tenant_L4_L7_devices_cont_ap}}"
+           #     status: modified
+              children: 
+                - fvAEPg: 
+                    attributes: 
+                      dn: "uni/tn-{{item.tenant_name}}/ap-{{item.tenant_L4_L7_devices_cont_ap}}/epg-{{item.tenant_L4_L7_devices_cont_s_epg}}"
+            #          status: modified
+                    children: 
+                      - fvRsCons: 
+                          attributes: 
+                            tnVzBrCPName: "{{item.tenant_L4_L7_devices_cont_name}}"
+             #               status: "created,modified"
+                - fvAEPg: 
+                    attributes: 
+                      dn: "uni/tn-{{item.tenant_name}}/ap-{{item.tenant_L4_L7_devices_cont_ap}}/epg-{{item.tenant_L4_L7_devices_cont_c_epg}}"
+              #        status: modified
+                    children: 
+                      - fvRsProv: 
+                          attributes: 
+                            tnVzBrCPName: "{{item.tenant_L4_L7_devices_cont_name}}"
+               #             status: "created,modified"
+                          
+  with_items: 
+    - '{{ SSOT_tenant|aci_listify("tenant","L4_L7_devices","cont") }}'

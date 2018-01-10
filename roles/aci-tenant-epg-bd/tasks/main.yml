@@ -1,14 +1,19 @@
+# 3.2.2.3 Create ACI EPG according Security Zone definition per each Class.
+
+## We expect that this role associates (any number of) Subnet for each BD on each Tenant when BD and Tenant are specified in the YAML customer file
+
 ---
-- name: Create EPG
-  aci_epg:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+- name: Create (any number of) EPGs,, under specific Tenants, when the AP and BD are given 
+  aci_epg: # This module manages End Point Groups (EPG) on cisco aci fabrics. It works with the internal APIC class fv:AEPg
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     validate_certs: no
     tenant: "{{ item.tenant_name }}"
     ap: "{{ item.tenant_app_name }}"
     epg: "{{ item.tenant_app_epg_name }}"
     bd: "{{ item.tenant_app_epg_bd }}"
+    state: "{{ item.tenant_app_epg_state }}" # action of the module depending on "state" property. This property can either be 'present' or 'absent' depending on whether the it's supposed to add or delete, respectively
   with_items:
-    - '{{ SSOT_tenant|aci_listify("tenant","app","epg") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','app','epg') }}"
 

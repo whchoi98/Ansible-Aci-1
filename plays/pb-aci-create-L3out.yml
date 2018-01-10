@@ -1,0 +1,31 @@
+# 3.4.1  On SR Tenant, Create L3Out for Internet Firewall
+# This playbook is a top level playbook that incorporates 2 other playbooks, which in turn are used in other use cases. 
+
+---
+- name: On SR Tenant, Create L3Out for Internet Firewall
+  hosts: "{{ target }}"
+  gather_facts: no
+  
+  tasks:
+     - include_vars:
+        file: "{{ ACI_SSoT_path }}/{{ tenant_name }}.yml"
+        name: SSOT_tenant                                         
+     - include_vars:                                  
+        file: "{{ ACI_SSoT_path }}/fabric.yml"
+        name: SSOT_fabric  # The fabric file is also included because the aci-external-domain role uses it.
+     
+     #3.4.3.1 Create external routed domain
+     - include_role:
+        name: aci-external-domain
+ 
+     # 3.4.1.1 Here, the role "Create External Routed Network " is called 
+     - include_role:
+        name: aci-external-routed-network
+  
+  # Import Playbook 1 (3.4.1.2 Prepare Primary External Node): 
+- import_playbook: 
+       pb-aci-prepare-external-node.yml
+
+  # Import Playbook 2 (3.4.1.3 Prepare Secondary External Node):
+- import_playbook: 
+       pb-aci-prepare-secondary-external-node.yml

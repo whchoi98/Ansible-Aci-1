@@ -1,82 +1,84 @@
 ---
-# STEPS TO DEPLOY A 'MATCH-ALL' CONTRACT:
-# 1- CHECK IF FILTER IS PRENSENT, IF YES SKIP CREATION ELSE CREATE IT AND CREATE A NEW ENTRY TOO
+
+# 3.4.1.5 Create Match-All Contract
+# STEPS TO DEPLOY A "MATCH-ALL" CONTRACT:
+# 1- CHECK IF FILTER IS PRESENT, IF YES SKIP CREATION ELSE CREATE IT AND CREATE A NEW ENTRY TOO
 # 2- IN CASE FILTER EXISTS CHECK FOR ENTRY, IF NOT PRESENT CREATE IT ELSE SKIP CREATION
-# 3- CHECK IF SUBJECT IS PRENSENT, IF YES SKIP CREATION BUT CHECK FOR SUBJECT TO CONTRACT ASSOCIATION ELSE CREATE IT
+# 3- CHECK IF SUBJECT IS PRESENT, IF YES SKIP CREATION BUT CHECK FOR SUBJECT TO CONTRACT ASSOCIATION ELSE CREATE IT
 # 4- IF SUBJECT IS NOT ASSOCIATED WITH CONTRACT, DO ASSOCIATE IT
-# 5- CHECK IF CONTRACT IS PRENSENT, IF YES SKIP CREATION ELSE CREATE IT
+# 5- CHECK IF CONTRACT IS PRESENT, IF YES SKIP CREATION ELSE CREATE IT
 
 ###############  Filter part
 
 - name: Create ( if not already present ) a match-all Filter
-  aci_filter:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+  aci_filter: #This module manages top level filter objects on cisco aci fabrics. It works with the internal APIC class vz:Filter
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     filter: "{{ item.tenant_contract_name }}_match_all_filter"
-    description: 'Filter for {{ item.tenant_contract_name }} to implement match-all policy'
-    tenant: '{{ item.tenant_name }}'
-    state: '{{ state }}'
+    description: "Filter for {{ item.tenant_contract_name }} to implement match-all policy"
+    tenant: "{{ item.tenant_name }}"
+    state: "{{ item.tenant_contract_state }}"
     validate_certs: no
   with_items: 
-    - '{{ SSOT_tenant|aci_listify("tenant","contract") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','contract') }}"
 
 - name: Create ( if not already present ) Filter Entry for Match-all Filter
-  aci_filter_entry:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+  aci_filter_entry: #This module manages filter entries for a filter on cisco aci fabrics. It works with the internal APIC class vz:Entry
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     entry: "{{ item.tenant_contract_name }}_match_all_entry_filter"
-    tenant: '{{ item.tenant_name }}'
-    ether_type: 'unspecified'
-    filter: "{{ item.tenant_contract_name }}_match_all_filter"
-    description: 'Filter Entry for {{ item.tenant_contract_name }} to implement match-all policy'
+    tenant: "{{ item.tenant_name }}"
+    ether_type: "unspecified" #ethernet type. APIC defaults new Filter Entries to unspecified
+    filter: "{{ item.tenant_contract_name }}_match_all_filter" #name of the filter that the entry should belong to
+    description: "Filter Entry for {{ item.tenant_contract_name }} to implement match-all policy"
     validate_certs: no
-    state: '{{ state }}'
+    state: "{{ item.tenant_contract_state }}"
   with_items: 
-    - '{{ SSOT_tenant|aci_listify("tenant","contract") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','contract') }}"
 
 ###############  Contract part
 
 - name: Create ( if not already present ) Contracts
-  aci_contract:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
-    contract: '{{ item.tenant_contract_name }}'
-    description: 'match-all contract created by Ansible'
-    tenant: '{{ item.tenant_name }}'
-    scope: '{{ item.tenant_contract_scope }}'
+  aci_contract: #This module manages contract resources on cisco aci fabrics. It works with the internal APIC class vz:BrCP
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    contract: "{{ item.tenant_contract_name }}" #name of the contract
+    description: "match-all contract created by Ansible"
+    tenant: "{{ item.tenant_name }}"
+    scope: "{{ item.tenant_contract_scope }}" #the scope of a service contract
     validate_certs: no
-    state: '{{ state }}' # this flag makes sure to create contracts ONLY if not already presents
+    state: "{{ item.tenant_contract_state }}" # this flag makes sure to create contracts ONLY if not already presents
   with_items: 
-    - '{{ SSOT_tenant|aci_listify("tenant","contract") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','contract') }}"
 
 
 - name: Create the subject and associate to contract
-  aci_contract_subject:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
-    tenant: '{{ item.tenant_name }}'
-    contract: '{{ item.tenant_contract_name }}'
+  aci_contract_subject: #This module manages initial contract subjects on cisco aci fabrics
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    tenant: "{{ item.tenant_name }}"
+    contract: "{{ item.tenant_contract_name }}" #name of the contract
     subject: "{{ item.tenant_contract_name }}_match_all_subject"
-    dscp: unspecified
-    state: '{{ state }}'
+    dscp: unspecified #the target Differentiated Service (DSCP) value
+    state: "{{ item.tenant_contract_state }}"
     validate_certs: no
   with_items: 
-    - '{{ SSOT_tenant|aci_listify("tenant","contract") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','contract') }}"
 
 - name: Associate filter to subject 
-  aci_contract_subject_to_filter:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
-    tenant: '{{ item.tenant_name }}'
-    contract: '{{ item.tenant_contract_name }}'
-    subject: "{{ item.tenant_contract_name }}_match_all_subject"
-    filter: "{{ item.tenant_contract_name }}_match_all_filter"
-    state: '{{ state }}'
+  aci_contract_subject_to_filter: #This module binds contract subjects to filters on aci fabrics. It works with the internal APIC class vz:RsSubjFiltAtt
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    tenant: "{{ item.tenant_name }}"
+    contract: "{{ item.tenant_contract_name }}" #name of the contract
+    subject: "{{ item.tenant_contract_name }}_match_all_subject" # the name of the contract subject
+    filter: "{{ item.tenant_contract_name }}_match_all_filter" #the name of the filter to bind to the subject
+    state: "{{ item.tenant_contract_state }}"
     validate_certs: no
   with_items: 
-    - '{{ SSOT_tenant|aci_listify("tenant","contract") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','contract') }}"

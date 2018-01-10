@@ -1,0 +1,61 @@
+---
+# 3.4.1.2.4 Verify BGP Peering
+
+####### Check if the BGP peer connection is established
+
+- set_fact: 
+    peer_ip: "{{ item.tenant_external_routed_network_logical_node_profile_interface_peer_ip }}" #It sets the peer ip which is taken from the environment YAML file
+    peer_topology: "{{ item.tenant_external_routed_network_logical_node_profile_interface_peer_topology }}"
+    peer_dom: "{{ item.tenant_external_routed_network_logical_node_profile_interface_peer_dom }}"
+  with_items: 
+    - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network','logical_node_profile', 'interface')}}"
+
+- name: Get BGP Peer information from Rest API
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: api/node/mo/topology/{{peer_topology}}sys/bgp/inst/dom-{{peer_dom}}/peer-[{{peer_ip}}/32]/ent-[{{peer_ip}}].json 
+    method: "get"
+  register: response #Registers the response from the APIC"s API GET request.
+
+- set_fact: status={{ response["imdata"][0]["bgpPeerEntry"]["attributes"]["operSt"] }} #status is set as the operational string itself.
+  when: response["imdata"] is defined
+
+- fail:
+    msg: "BGP is not established with this peer"
+  when: status!="established"   #A connection that is established has the "established" string in the operational Status field.
+
+###### Check if expected subnets are in the BGP routes
+
+- name: Get Expected subnets information from Rest API
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: api/node/mo/topology/{{peer_topology}}sys/bgp/inst/dom-{{peer_dom}}.json?query-target=subtree&target-subtree-class=bgpRoute
+    method: "get"
+  register: response_subnet #Once again, the APIC"s response to the GET request is stored in this variable.
+
+- name: Create a subnet list item
+  set_fact:
+    array_content: "{{ item['bgpRoute']['attributes']['pfx'] }}" #pfx is the IP prefix of each BGP route. This loop"s objective is to create a cell which content is a subnet list item. 
+  with_items: 
+    - "{{ response_subnet['imdata'] }}"
+  register: array_of_contents  
+
+- name: Make a list with all the subnet items
+  set_fact: 
+       data_struc: "{{ array_of_contents.results | map(attribute='ansible_facts.array_content') | list }}"  #This task grabs the cells prepared in the previous task and builds an array with them.
+
+- fail:
+    msg: "Expected Subnet doesn't exist in the BGP routes"
+  when: "'{{ item.tenant_external_routed_network_logical_node_profile_interface_subnets_ip }}/{{ item.tenant_external_routed_network_logical_node_profile_interface_subnets_mask }}' not in data_struc"  #if any of the expected subnets given in the file aren"t in the array of subnets obtained from the APIC"s get request, the test fails.
+  with_items: 
+    - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network','logical_node_profile','interface','subnets')}}"
+
+
+
+

@@ -1,0 +1,23 @@
+---
+# 3.6.3.2.1 Add Static route to Node Profile on Configured Nodes
+
+- name: Add Static route to Node Profile on Configured Nodes
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: /api/node/mo/uni/tn-{{item.tenant_name}}/out-{{item.tenant_external_routed_network_name}}/lnodep-{{item.tenant_external_routed_network_logical_node_profile_name}}/rsnodeL3OutAtt-[{{ item.tenant_external_routed_network_logical_node_profile_node_name }}]/rt-[{{ item.tenant_external_routed_network_logical_node_profile_node_static_route }}/{{ item.tenant_external_routed_network_logical_node_profile_node_static_route_mask }}].json   # this is the path to a configured node's static routes
+    method: "{{ 'post' if (item.tenant_external_routed_network_logical_node_profile_node_state == 'present') else 'delete' }}"
+    content:
+      ipRouteP: #IP route object
+        attributes:
+          ip: "{{ item.tenant_external_routed_network_logical_node_profile_node_static_route }}/{{ item.tenant_external_routed_network_logical_node_profile_node_static_route_mask }}" # static route's subnet 
+        children:
+        - ipNexthopP:
+            attributes:
+              nhAddr: "{{ item.tenant_external_routed_network_logical_node_profile_node_static_route_nh }}" #route's next hop's address
+              pref: "1"
+
+  with_items: 
+   - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network','logical_node_profile','node') }}"

@@ -1,0 +1,23 @@
+---
+# 3.1.4.1 Create Link Level Policy
+
+- name: Create a link-level policy
+  aci_rest:
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
+    validate_certs: no
+    path: api/node/mo/uni/infra/hintfpol-{{ item.access_policy_interface_policy_link_level_name }}.json #this is the path to the interface policy object
+    method: "{{ 'post' if (item.access_policy_interface_policy_link_level_state == 'present') else 'delete' }}"
+    content: 
+        fabricHIfPol:  # This is the link level interface object itself. 
+            attributes:
+               name: "{{ item.access_policy_interface_policy_link_level_name }}"    
+               autoNeg: "{{ item.access_policy_interface_policy_link_level_autoNeg }}"  # This is the Auto Negotiation Setting. Can be "on" or "off"
+               speed: "{{  item.access_policy_interface_policy_link_level_speed }}" # This is the Speed attribute
+               linkDebounce: "{{  item.access_policy_interface_policy_link_level_linkDebounce }}" # Link debounce interval in msec
+               fecMode: "{{  item.access_policy_interface_policy_link_level_fecMode }}" # FOrwarding Error Correction (CL74-FC-FEC, CL91-RS-FEC, disable-FEC, Inherit)
+
+  with_items: 
+    - "{{ SSOT_fabric|aci_listify('access_policy','interface_policy_link_level') }}"
+

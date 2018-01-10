@@ -1,13 +1,21 @@
+IBM original command:
+
+ansible-playbook pb-aci-onboarding.yml --extra-vars "target=aci1 aci_ip=10.113.97.71 aci_username=admin aci_password=P@ssw0rd123 ACI_SSoT_path=../environments/Norway/lab/aci tenant_name=Customer01"
+
+###################################################
+ 
+Cisco GDC command (it assumes that the command is launched from the same directory where this file is located):
+
 :: base command:
  
-ansible-playbook -i ACI_HOSTS ./plays/pb-aci-XXX.yml --extra-vars "ACI_SSoT_path=../environments/aci tenant_name=Customer0X target=aci-krk" -c local
+ansible-playbook -i ACI_HOSTS ./plays/pb-aci-XXX.yml --extra-vars "ACI_SSoT_path=../environments/Norway/lab/aci tenant_name=Customer03 target=aci-krk" -c local
 
-SAME COMMAND BUT ADDIOTIONAL FLAGs:
+SAME COMMAND BUT ADDITIONAL FLAGS:
 
 :: to remove all the configs in a playbook:
 
-ansible-playbook -i ACI_HOSTS ./plays/pb-aci-XXX.yml --extra-vars "ACI_SSoT_path=../environments/aci tenant_name=Customer0X target=aci-krk action=delete" -c local
+ansible-playbook -i ACI_HOSTS ./plays/pb-aci-XXX.yml --extra-vars "ACI_SSoT_path=../environments/Norway/lab/aci tenant_name=Customer03 target=aci-krk action=delete" -c local
 
 :: to show debug messages: 
 
-ansible-playbook -i ACI_HOSTS ./plays/pb-aci-XXX.yml --extra-vars "ACI_SSoT_path=../environments/aci tenant_name=Customer0X target=aci-krk debug=true" -c local -vvv
+ansible-playbook -i ACI_HOSTS ./plays/pb-aci-XXX.yml --extra-vars "ACI_SSoT_path=../environments/Norway/lab/aci tenant_name=Customer03 target=aci-krk debug=true" -c local -vvv

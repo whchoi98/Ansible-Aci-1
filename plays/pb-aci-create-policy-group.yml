@@ -1,0 +1,21 @@
+---
+
+# 3.1.5 Create Policy Groups for each External Node
+
+- name: Create Policy Groups
+  hosts: "{{ target }}"
+  gather_facts: no
+
+  tasks:
+    - include_vars:
+        file: "{{ ACI_SSoT_path }}/fabric.yml"
+        name: SSOT_fabric
+
+    # 3.1.5.1 Create Access Port Policy Group
+    - include_role:
+        name: aci-create-access-port-policy-group
+
+    # 3.1.5.3 and 3.1.5.4 Create Port Channel and vPC Interface Policy Group
+    - include_role:
+        name: aci-create-pc-policy-group #also creates vPCs depending on the lagT parameter, 'link' for PC and 'node' for vPC
+

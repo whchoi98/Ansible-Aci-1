@@ -1,28 +1,19 @@
 ---
-- name: Print IP, USR, PASS for debug purposes. is group vars working here?
-  debug: 
-    msg: "DBG = {{ aci_ip }} _ {{ aci_username }} _ {{ aci_password }} "
-  when: debug == "true"
 
-- name: Item debug
-  debug: 
-    msg: "DBG_ITEM = {{ item }}"
-  with_items:
-     - '{{ SSOT_tenant|aci_listify("tenant","external_routed_network","epg") }}'
-  when: debug == "true"
+#3.4.1.4.1 Create External Network (EPG) for the External Routed Network
 
-- name: Deploy an EPG 
+- name: Create External Network (EPG) for the External Routed Network
   aci_rest:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     validate_certs: no
-    path: api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/instP-{{item.tenant_external_routed_network_epg_name}}.json
-    method: '{{ method }}'
+    path: api/node/mo/uni/tn-{{ item.tenant_name }}/out-{{ item.tenant_external_routed_network_name }}/instP-{{item.tenant_external_routed_network_epg_name}}.json  #path to the EPG object
+    method:  "{{ 'post' if ( item.tenant_external_routed_network_epg_state == 'present') else 'delete' }}"  
     content: 
-        l3extInstP:
+        l3extInstP: #External routed network"s EPG object
             attributes:
                name: "{{item.tenant_external_routed_network_epg_name}}"
            
   with_items: 
-    - '{{ SSOT_tenant|aci_listify("tenant","external_routed_network","epg") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network','epg') }}"

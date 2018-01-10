@@ -1,16 +1,25 @@
+# 3.2.2.2 Add Subnet to ACI Bridge Domain 
+
+## We expect that this role associates (any number of) Subnet for each BD on each Tenant when BD and Tenant are specified in the YAML customer file
+
 ---
 - name: Tenant BD Subnet Assignment
-  aci_bd_subnet:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+  aci_bd_subnet: # This module manages subnets on cisco aci fabrics. It works with the internal APIC class fv:Subnet
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     validate_certs: no
     tenant: "{{ item.tenant_name }}"
     bd: "{{ item.tenant_bd_name }}"
     subnet_name: "{{ item.tenant_bd_subnet_name }}"
     gateway: "{{ item.tenant_bd_subnet_name }}"
-    scope: "{{ item.tenant_bd_subnet_scope }}"
+    scope: "{{ item.tenant_bd_subnet_scope }}" # This parameter determines the scope of the subnet - private, public or shared. 
+    #The private option only allows communication with hosts in the same VRF.
+    #The public option allows the Subnet to be advertised outside of the ACI Fabric, and allows communication with hosts in other VRFs.
+    #The shared option limits communication to hosts in either the same VRF or the shared VRF.
+    #The APIC defaults new Subnets to private.
     mask: "{{ item.tenant_bd_subnet_mask }}"
+    state: "{{ item.tenant_bd_subnet_state }}" # action of the module depending on "state" property. This property can either be 'present' or 'absent' depending on whether the it's supposed to add or delete, respectively
   with_items:
-    - '{{ SSOT_tenant|aci_listify("tenant","bd","subnet") }}'
+    - "{{ SSOT_tenant|aci_listify('tenant','bd','subnet') }}"
 

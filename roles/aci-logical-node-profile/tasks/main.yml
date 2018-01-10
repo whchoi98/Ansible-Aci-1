@@ -1,16 +1,30 @@
 ---
-- name: Create Logical Node Profile
+# 3.4.1.2.1 Create Logical Node Profile
+
+- name: Create Logical Node Profile  
   aci_rest:
-    hostname: '{{ aci_ip }}'
-    username: '{{ aci_username }}'
-    password: '{{ aci_password }}'
+    hostname: "{{ aci_ip }}"
+    username: "{{ aci_username }}"
+    password: "{{ aci_password }}"
     validate_certs: no
-    path: /api/node/mo/uni/infra/nprof-{{ item.access_policy_switch_policy_profile_name }}.json
-    method: post
+    path: /api/node/mo/uni/tn-{{item.tenant_name}}/out-{{item.tenant_external_routed_network_name}}/lnodep-{{item.tenant_external_routed_network_logical_node_profile_name}}.json  # path to the logical node profile object
+    method: "{{ 'post' if (item.tenant_external_routed_network_logical_node_profile_state == 'present') else 'delete'  }}"
     content:
-      infraNodeP:
+      l3extLNodeP:  # logical Node Profile object itself
         attributes:
-          descr: ''
-          dn: uni/infra/nprof-{{item.access_policy_switch_policy_profile_name }}
-          name: '{{ item.access_policy_switch_policy_profile_name }}'
-  with_items: '{{ SSOT_fabric|aci_listify("access_policy","switch_policy_profile") }}'
+          dn: uni/tn-{{item.tenant_name}}/out-{{item.tenant_external_routed_network_name}}/lnodep-{{item.tenant_external_routed_network_logical_node_profile_name}}
+          name: "{{item.tenant_external_routed_network_logical_node_profile_name}}" 
+          rn: lnodep-{{item.tenant_external_routed_network_logical_node_profile_name}}
+        children:
+          - l3extRsNodeL3OutAtt: #Node Profile's Nodes field
+              attributes:
+                dn: uni/tn-{{item.tenant_name}}/out-{{item.tenant_external_routed_network_name}}/lnodep-{{item.tenant_external_routed_network_logical_node_profile_name}}/rsnodeL3OutAtt-[{{item.tenant_external_routed_network_logical_node_profile_node_name}}] 
+                rn: rsnodeL3OutAtt-[{{item.tenant_external_routed_network_logical_node_profile_node_name}}]
+                rtrId: "{{item.tenant_external_routed_network_logical_node_profile_node_routeid}}" # Router ID
+                tDn: "{{item.tenant_external_routed_network_logical_node_profile_node_name}}" #link to the logical node profile itself
+              children:
+                - l3extInfraNodeP:
+                    attributes:
+                      fabricExtCtrlPeering: "false"
+  with_items: 
+   - "{{ SSOT_tenant|aci_listify('tenant','external_routed_network','logical_node_profile','node') }}"

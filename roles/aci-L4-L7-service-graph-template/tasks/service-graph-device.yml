@@ -1,0 +1,33 @@
+---
+- name: Create L4 L7 Firewall Device Connection
+  aci_rest:
+    hostname: '{{ aci_ip }}'
+    username: '{{ aci_username }}'
+    password: '{{ aci_password }}'
+    validate_certs: "no"
+    path: /api/node/mo/uni/tn-{{item.tenant_name}}/AbsGraph-{{item.tenant_L4_L7_devices_service_graph_template_name}}/AbsNode-{{item.tenant_L4_L7_devices_service_graph_template_nodes_name}}.json
+    method:  "{{ 'post' if ( item.tenant_L4_L7_devices_service_graph_template_nodes_state == 'present') else 'delete' }}"
+    content:
+      vnsAbsNode:
+        attributes:
+          dn: uni/tn-{{item.tenant_name}}/AbsGraph-{{item.tenant_L4_L7_devices_service_graph_template_name}}/AbsNode-{{item.tenant_L4_L7_devices_service_graph_template_nodes_name}}
+          funcTemplateType: "{{item.tenant_L4_L7_devices_service_graph_template_nodes_function_type}}"
+          managed: 'false'
+          name: "{{item.tenant_L4_L7_devices_service_graph_template_nodes_name}}"
+          routingMode: "{{item.tenant_L4_L7_devices_service_graph_template_nodes_routing_mode}}"
+        children:
+        - vnsAbsFuncConn:
+            attributes:
+              dn: uni/tn-{{item.tenant_name}}/AbsGraph-{{item.tenant_L4_L7_devices_service_graph_template_name}}/AbsNode-{{item.tenant_L4_L7_devices_service_graph_template_nodes_name}}/AbsFConn-{{item.tenant_L4_L7_devices_service_graph_template_nodes_function_conn_consumer}}
+              name: "{{item.tenant_L4_L7_devices_service_graph_template_nodes_function_conn_consumer}}"
+        - vnsAbsFuncConn:
+            attributes:
+              dn: uni/tn-{{item.tenant_name}}/AbsGraph-{{item.tenant_L4_L7_devices_service_graph_template_name}}/AbsNode-{{item.tenant_L4_L7_devices_service_graph_template_nodes_name}}/AbsFConn-{{item.tenant_L4_L7_devices_service_graph_template_nodes_function_conn_provider}}
+              name: "{{item.tenant_L4_L7_devices_service_graph_template_nodes_function_conn_provider}}"
+        - vnsRsNodeToLDev:
+            attributes:
+              tDn: uni/tn-{{item.tenant_name}}/lDevVip-{{item.tenant_L4_L7_devices_name}}
+  with_items: 
+    - '{{ SSOT_tenant|aci_listify("tenant","L4_L7_devices","service_graph_template","nodes") }}'
+
+
