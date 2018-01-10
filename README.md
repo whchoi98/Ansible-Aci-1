@@ -1,18 +1,18 @@
 
-# AS-Evry-IBM-Norwegian-Wood
+# Ansible - ACI project repository
 
-Ansible - ACI project repository for IBM Evry
 
-# Project structure
+### Project structure
 
 1. All the playbooks are in [plays](./plays) folder. Each play corresponds to a User Story. The name of the play file uses this convention:
-    * pb-aci-X.yml  where X is the name of the Use Case as it appears in IBM requirement doc.
+    * pb-aci-X.yml  where X is the name of an Use Case.
         
 2. Each playbook is composed by roles, so playbooks can reuse same roles to deploy different User Stories
     
 3. Each role has some task list in /tasks directory. Please be advised that default variables might be defined, per each role, in /vars folder
 
-4. Each playbook reads configuration files (called SSoT) from the folder /environment/Norwegian/ (eg. /environment/Norwegian/lab/aci )  **add here customer specific files, if variables are missing here the playbooks will fail!**
+4. Each playbook reads configuration files (called SSoT) from the folder /environment/
+**add here customer specific files, if variables are missing here the playbooks will fail!**
     
 5. ACI_HOSTS is the file that manages all the IP:PORT address of `*SSH*` ACI connection. (do not point to HTTPS port!) 
        Append to this file the ACI IPs you want to control with Ansible.
@@ -24,9 +24,6 @@ Ansible - ACI project repository for IBM Evry
 # Important
 
 To launch the ansible playbooks see [launch_playbooks.txt](./launch_playbooks.txt).
-
--- 
-Francesco Di Benedetto
 
 
 # Notes
@@ -68,4 +65,4 @@ Most roles use the 'aci_rest' module to interact with the APIC's REST API. Takin
           epg: 
             - name: pippo
 ```
-'aci_listify("tenant","external_routed_network","epg")' makes it so the epg name attribute is recognised as 'tenant_external_routed_network_epg_name'.
+'aci_listify("tenant","external_routed_network","epg")' makes it so the epg name attribute is recognized as 'tenant_external_routed_network_epg_name'.
